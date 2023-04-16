@@ -68,6 +68,8 @@ app.post("/messages", async (req, res) => {
     const user = req.headers.user;
     const { to, text, type } = req.body;
 
+    if (!user) res.sendStatus(422);
+
     const messageSchema = joi.object({
         to: joi.string().required(),
         text: joi.string().required(),
@@ -84,7 +86,7 @@ app.post("/messages", async (req, res) => {
     try {
         const resp = await db.collection("participants").findOne({ name: user });
 
-        if (!resp) return res.status(409).send("Este usuário não está online!");
+        if (!resp) return res.status(422).send("Este usuário não está online!");
 
         await db.collection("messages").insertOne({
             from: user, 
