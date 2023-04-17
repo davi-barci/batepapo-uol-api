@@ -24,12 +24,13 @@ try {
 const db = mongoClient.db();
 
 app.post("/participants", async (req, res) => {
+    let {name} = req.body;
 
-    if (req.body.name) req.body.name = stripHtml(req.body.name).result.trim();
+    if (name) name = stripHtml(name).result.trim();
 
     const participantSchema = joi.string().required();
 
-    const validation = participantSchema.validate(req.body.name, { abortEarly: false });
+    const validation = participantSchema.validate(name, { abortEarly: false });
 
     if (validation.error) {
         const errors = validation.error.details.map((detail) => detail.message);
@@ -37,16 +38,16 @@ app.post("/participants", async (req, res) => {
     }
 
     try {
-        const resp = await db.collection("participants").findOne({ name: req.body.name });
+        const resp = await db.collection("participants").findOne({ name: name });
         if (resp) return res.status(409).send("Usuário já cadastrado!");
 
         await db.collection("participants").insertOne({
-            name: req.body.name,
+            name: name,
             lastStatus: Date.now()
         });
 
         await db.collection("messages").insertOne({
-            from: req.body.name,
+            from: name,
             to: 'Todos',
             text: 'entra na sala...',
             type: 'status',
@@ -151,7 +152,7 @@ app.delete("/messages/:id", async (req, res) => {
         if (mensagem.from !== user) return res.sendStatus(401);
 
         await db.collection("messages").deleteOne({ _id: new ObjectId(id) });
-		return res.status(204).send("Messagem deletada com sucesso");
+		return res.status(200).send("Messagem deletada com sucesso");
 	 } catch (error) {
 	  res.status(500).send(error);
 	 }
