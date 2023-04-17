@@ -4,6 +4,7 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import joi from 'joi';
 import dayjs from "dayjs";
+import { stripHtml } from 'string-strip-html';
 
 const app = express()
 
@@ -23,6 +24,8 @@ try {
 const db = mongoClient.db();
 
 app.post("/participants", async (req, res) => {
+
+    if (req.body.name) req.body.name = stripHtml(req.body.name).result.trim();
 
     const participantSchema = joi.string().required();
 
@@ -89,10 +92,10 @@ app.post("/messages", async (req, res) => {
         if (!resp) return res.status(422).send("Este usuário não está online!");
 
         await db.collection("messages").insertOne({
-            from: user, 
-            to: to, 
-            text: text, 
-            type: type, 
+            from: stripHtml(user).result.trim(), 
+            to: stripHtml(to).result.trim(), 
+            text: stripHtml(text).result.trim(), 
+            type: stripHtml(type).result.trim(), 
             time: dayjs().format('HH:mm:ss')
         });
 
