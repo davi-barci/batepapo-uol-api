@@ -26,8 +26,6 @@ const db = mongoClient.db();
 app.post("/participants", async (req, res) => {
     let {name} = req.body;
 
-    if (name) name = stripHtml(name).result.trim();
-
     const participantSchema = joi.string().required();
 
     const validation = participantSchema.validate(name, { abortEarly: false });
@@ -36,6 +34,8 @@ app.post("/participants", async (req, res) => {
         const errors = validation.error.details.map((detail) => detail.message);
         return res.status(422).send(errors);
     }
+
+    if (name) name = stripHtml(name).result.trim();
 
     try {
         const resp = await db.collection("participants").findOne({ name: name });
